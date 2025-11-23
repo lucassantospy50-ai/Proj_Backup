@@ -22,6 +22,3 @@ import zipfile
 import tkinter as tk
 import sys
 ```
-## Links para me contatar 🔗 
-[![github](https://img.shields.io/badge/github-000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/lucassantospy50-ai)
-[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/lucas-santos-428869398/)
