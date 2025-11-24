@@ -28,7 +28,7 @@ if fazer_backup:
                 sys.exit()
             if diretorio not in lista_diretorios:
                 lista_diretorios.append(diretorio)
-            parar_pasta = messagebox.askyesno('Gerando os Caminhos', 'Precisa fazer backup em mais um diretório?')
+            parar_pasta = messagebox.askyesno('Gerando os Caminhos', 'Precisa fazer backup em mais uma pastas?')
             if not parar_pasta:
                 break
 
@@ -59,32 +59,54 @@ if fazer_backup:
             root.destroy()
             sys.exit()
 
-#Fazer o Backup dos arquivos 
-    try:
-        if Path(local_backup / Path('Backup')).exists():
-            for arquivo in lista_arquivos:
-                shutil.copy2(arquivo, Path(local_backup / Path('Backup')))
-        else:
-            Path(local_backup / Path('Backup')).mkdir()
-            for arquivo in lista_arquivos:
-                shutil.copy2(arquivo, Path(local_backup / Path('Backup')))
-    except:
-        messagebox.showerror('Backup Automáico', 'Ocorreu um erro no Backup')
 
-#Fazer o Backup dos diretórios 
-    try:
-        if Path(local_backup / Path('Backup')).exists():
-            for diretorio in lista_diretorios:
+    if len(lista_arquivos) + len(lista_diretorios) != 0:
+#Fazendo o Backup de pastas com tratamento de erro
+        pasta_backup = Path(local_backup) / 'Backup'
+        pasta_backup.mkdir(exist_ok=True)
+
+        lista_erros_diretorios = []
+        for diretorio in lista_diretorios:
+            try:
                 nome_diretorio = Path(diretorio).name
                 novo_caminho = Path(local_backup / Path('Backup')) / Path(nome_diretorio)
                 shutil.copytree(diretorio, novo_caminho)
-        else:
-            Path(local_backup / Path('Backup')).mkdir()
-            for diretorio in lista_diretorios:
-                nome_diretorio = Path(diretorio).name
-                novo_caminho = Path(local_backup / Path('Backup')) / Path(nome_diretorio)
-                shutil.copytree(diretorio, novo_caminho)
-    except:
-        messagebox.showerror('Backup Automáico', 'Ocorreu um erro no Backup')
+            except (FileNotFoundError, FileExistsError, PermissionError, OSError) as e:
+                lista_erros_diretorios.append(
+                    {'Pasta': diretorio, 'Error': type(e).__name__, 'Mensagem': str(e)}
+                )
+            except Exception as e:
+                lista_erros_diretorios.append(
+                    {'Pasta': diretorio, 'Error': type(e).__name__, 'Mensagem': str(e)}
+                )
 
+    #Fazendo o Backup de arquivos com tratamento de erro
+        lista_erros_arquivos = []
+        for arquivo in lista_arquivos:
+            try:
+                nome_arquivo = Path(arquivo).name
+                novo_caminho = Path(local_backup / Path('Backup')) / Path(nome_arquivo)
+                shutil.copy2(arquivo, novo_caminho)
+            except (FileNotFoundError, FileExistsError, PermissionError, OSError) as e:
+                lista_erros_arquivos.append(
+                    {'Arquivo': arquivo, 'Error': type(e).__name__, 'Mensagem': str(e)}
+                )
+            except Exception as e:
+                lista_erros_arquivos.append(
+                    {'Arquivo': arquivo, 'Error': type(e).__name__, 'Mensagem': str(e)}
+                )
+    else:
+        messagebox.showinfo('Backup', 'Não foi selecionado nenhum arquivo/pasta para o backup')
+
+    
+    if len(lista_erros_arquivos) != 0:
+        for error in lista_erros_arquivos:
+            messagebox.showerror('Erro no Backup', f'O arquivo localizado no caminho {error['Arquivo']} não foi possível colocá-lo no backup, pois ele deu o erro {error['Error']}: {error['Mensagem']}')
+    
+    
+    if len(lista_erros_diretorios) != 0:
+        for error in lista_erros_diretorios:
+            messagebox.showerror('Erro no Backup', f'A pasta localizada no caminho {error['Pasta']} não foi possível colocá-la no backup, pois ela deu o erro {error['Error']}: {error['Mensagem']}')
+    
+    
 root.destroy()
